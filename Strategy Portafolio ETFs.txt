@@ -1,0 +1,119 @@
+INPUTS:
+
+
+{ general definitions }
+
+NCON(1),
+
+Price_superior (High )  ,
+
+Price_inferior (Low ) ,
+
+Price (Close),
+
+Length_MA (140),
+
+Length_O (10),
+
+f_ADX_apertura(14),
+
+Length_Out( 630 ),
+
+f_premio(0.6);
+
+
+
+VARS:
+
+ATR (0),
+
+ADXValue (0),
+
+Time_Entry_Type_2.1(0),
+
+Premio(0),
+
+ENTRY_DAY (0);
+
+
+
+If Date <> Date[1] Then
+
+Begin
+
+	ENTRY_DAY 			= 	DAYOFWEEK(DATE);
+	ATR 				= 	AvgTrueRange(14) data2;
+	ADXValue			=	ADX( 14 );
+	Time_Entry_Type_2.1 =	1530;
+	
+end;
+
+
+//Definiciones//
+
+Premio = Highest( High, Length_Out ) - close; 
+
+
+
+// ENTRY CONDITION //
+
+
+{ CONDICION DE ENTRADA TIPO 1 }
+
+If
+	EntriesToday(date) = 0															And
+	XAverage (Price_superior , Length_O) Cross over AverageFC( Price, Length_MA )	And  
+	Premio > f_premio*ATR															And
+	ADXValue 	>= 	f_ADX_apertura 
+
+Then
+
+	Begin 
+
+		Buy (!("Type 1.1"))  Ncon contracts this bar at close;
+	
+	end;
+	
+
+{ CONDICION DE ENTRADA TIPO 2 }
+
+
+If
+	EntriesToday(date) = 0								And
+	LowD(0)		<	AverageFC( Price, Length_MA ) 		And 
+	Time 		>	Time_Entry_Type_2.1					And
+	LowD(1)		>	AverageFC( Price, Length_MA )		And
+	Close 		>	AverageFC( Price, Length_MA )		And
+	Premio > f_premio*ATR								And
+	ADXValue 	>=  f_ADX_apertura
+
+Then 
+
+	Begin
+
+		Buy (!("Type 2.1")) Ncon contracts this bar at close;
+	
+	End;
+
+
+// EXIT CONDITION //
+
+
+{
+The IntrabarOrderGeneration attribute is set to false in this strategy because
+strategy calculations depend on end-of-bar prices.  Specifically, end of bar high and
+close prices are used in this strategy to identify a "key reversal" bar.
+}
+
+[IntrabarOrderGeneration = false]
+
+
+if High > Highest( High, Length_Out )[1] and Close < Close[1] then
+	Sell ( !( "KeyRevLX" ) ) next bar at market;
+
+
+{ ** Copyright © Quantitative Research & Trading Solutions, SpA.  All Rights Reserved ** 
+  ** Quantitative Research & Trading Solutions reserves the right to modify or overwrite this strategy component 
+     with each release. **
+  ** 2020** }
+     
